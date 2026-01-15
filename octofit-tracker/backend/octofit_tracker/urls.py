@@ -18,6 +18,8 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework import routers
 from .views import UserViewSet, TeamViewSet, ActivityViewSet, WorkoutViewSet, LeaderboardViewSet
+
+import os
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 
@@ -30,16 +32,19 @@ router.register(r'leaderboard', LeaderboardViewSet)
 
 @api_view(['GET'])
 def api_root(request, format=None):
+    # Always use the request's host and scheme for building URLs
+    scheme = 'https' if request.is_secure() or request.get_host().endswith('.app.github.dev') else 'http'
+    base_url = f"{scheme}://{request.get_host()}/api/"
     return Response({
-        'users': request.build_absolute_uri('users/'),
-        'teams': request.build_absolute_uri('teams/'),
-        'activities': request.build_absolute_uri('activities/'),
-        'workouts': request.build_absolute_uri('workouts/'),
-        'leaderboard': request.build_absolute_uri('leaderboard/'),
+        'users': base_url + 'users/',
+        'teams': base_url + 'teams/',
+        'activities': base_url + 'activities/',
+        'workouts': base_url + 'workouts/',
+        'leaderboard': base_url + 'leaderboard/',
     })
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', api_root, name='api-root'),
-    path('', include(router.urls)),
+    path('api/', api_root, name='api-root'),
+    path('api/', include(router.urls)),
 ]
